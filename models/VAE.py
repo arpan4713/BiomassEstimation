@@ -241,17 +241,20 @@ class VAE(object):
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
 
     def loss_function(self, recon_x, x, mu, logvar):
-        # Reconstruction loss (assuming input data is normalized to [0, 1])
+        # Reconstruction loss (Binary Cross-Entropy for normalized data)
         BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
+        
         # KL divergence
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        
+        # Total loss
         return BCE + KLD
 
     def train(self, epoch):
         self.model.train()
         train_loss = 0
         for batch_idx, (data, _) in enumerate(self.train_loader):
-            data = data.to(self.device)
+            data = data.to(self.device) / 255.0  # Normalize data to [0, 1]
             self.optimizer.zero_grad()
             recon_batch, mu, logvar = self.model(data)
             loss = self.loss_function(recon_batch, data, mu, logvar)
@@ -273,9 +276,9 @@ class VAE(object):
         test_loss = 0
         with torch.no_grad():
             for data, _ in self.test_loader:
-                data = data.to(self.device)
+                data = data.to(self.device) / 255.0  # Normalize data to [0, 1]
                 recon_batch, mu, logvar = self.model(data)
                 test_loss += self.loss_function(recon_batch, data, mu, logvar).item()
 
         test_loss /= len(self.test_loader.dataset)
-        print('====> Test set loss: {:.4f}'.format(test_loss))            
+        print('====> Test set loss: {:.4f}'.format(test_loss))
