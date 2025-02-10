@@ -198,10 +198,13 @@ class CNN_Decoder(nn.Module):
         )
 
         self.deconv = nn.Sequential(
-            nn.ConvTranspose2d(512, self.channel_mult*4, 4, 1, 0, bias=False),
+            nn.ConvTranspose2d(512, self.channel_mult*8, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(self.channel_mult*8),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(self.channel_mult*8, self.channel_mult*4, 4, 2, 1, bias=False),
             nn.BatchNorm2d(self.channel_mult*4),
             nn.ReLU(True),
-            nn.ConvTranspose2d(self.channel_mult*4, self.channel_mult*2, 3, 2, 1, bias=False),
+            nn.ConvTranspose2d(self.channel_mult*4, self.channel_mult*2, 4, 2, 1, bias=False),
             nn.BatchNorm2d(self.channel_mult*2),
             nn.ReLU(True),
             nn.ConvTranspose2d(self.channel_mult*2, self.channel_mult, 4, 2, 1, bias=False),
