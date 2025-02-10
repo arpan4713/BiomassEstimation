@@ -122,7 +122,6 @@ above is the original
 '''
 eurosat cp
 '''
-
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -149,11 +148,11 @@ class FC_Decoder(nn.Module):
         return torch.sigmoid(self.fc4(h3))
 
 class CNN_Encoder(nn.Module):
-    def __init__(self, output_size, input_size=(1, 28, 28)):
+    def __init__(self, output_size, input_size=(3, 64, 64)):
         super(CNN_Encoder, self).__init__()
         self.input_size = input_size
         self.channel_mult = 16
-        in_channels = input_size[0]  # Adjust for grayscale (1) or RGB (3)
+        in_channels = input_size[0]
 
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, self.channel_mult, 4, 2, 1),
@@ -170,7 +169,6 @@ class CNN_Encoder(nn.Module):
         )
 
         self.flat_fts = self.get_flat_fts(self.conv)
-
         self.linear = nn.Sequential(
             nn.Linear(self.flat_fts, output_size),
             nn.BatchNorm1d(output_size),
@@ -187,11 +185,11 @@ class CNN_Encoder(nn.Module):
         return self.linear(x)
 
 class CNN_Decoder(nn.Module):
-    def __init__(self, embedding_size, output_size=(1, 28, 28)):
+    def __init__(self, embedding_size, output_size=(3, 64, 64)):
         super(CNN_Decoder, self).__init__()
         self.output_size = output_size
         self.channel_mult = 16
-        out_channels = output_size[0]  # Adjust for grayscale (1) or RGB (3)
+        out_channels = output_size[0]
 
         self.fc = nn.Sequential(
             nn.Linear(embedding_size, 512),
