@@ -185,10 +185,15 @@ if __name__ == "__main__":
         # Create animation
         interpolations = interpolations.cpu()
         if args.dataset == 'EuroSAT':
-            interpolations = np.reshape(interpolations.data.numpy(), (-1, 64, 64, 3))  # Reshape for RGB
-        else:
-            interpolations = np.reshape(interpolations.data.numpy(), (-1, 28, 28))
+             interpolations = np.reshape(interpolations.data.numpy(), (-1, 64, 64, 3))  # Reshape for RGB
+else:
+    interpolations = np.reshape(interpolations.data.numpy(), (-1, 28, 28))
 
-        interpolations = ndimage.zoom(interpolations, (1, 5, 5, 1) if args.dataset == 'EuroSAT' else ndimage.zoom(interpolations, 5, order=1)
-        interpolations *= 256
-        imageio.mimsave('{}/animation_{}_{}.gif'.format(args.results_path, args.model, args.dataset), interpolations.astype(np.uint8))
+interpolations = ndimage.zoom(interpolations, (1, 5, 5, 1) if args.dataset == 'EuroSAT' else 5, order=1)
+interpolations *= 256
+
+imageio.mimsave('{}/animation_{}_{}.gif'.format(args.results_path, args.model, args.dataset), interpolations.astype(np.uint8))
+
+       
+
+
