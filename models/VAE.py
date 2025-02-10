@@ -196,7 +196,6 @@ cp eurosat
 ds eurosat
 
 '''
-
 import torch
 import torch.utils.data
 from torch import nn, optim
@@ -234,9 +233,12 @@ class VAE(object):
     def __init__(self, args):
         self.args = args
         self.device = torch.device("cuda" if args.cuda else "cpu")
+        
+        # Load data
         self.train_loader = get_dataloader(self.args.dataset, self.args.batch_size, train=True)
         self.test_loader = get_dataloader(self.args.dataset, self.args.batch_size, train=False)
 
+        # Initialize model and optimizer
         self.model = Network(args).to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=1e-3)
 
@@ -254,7 +256,7 @@ class VAE(object):
         self.model.train()
         train_loss = 0
         for batch_idx, (data, _) in enumerate(self.train_loader):
-            data = data.to(self.device) / 255.0  # Normalize data to [0, 1]
+            data = data.to(self.device)  # Data is already normalized in get_dataloader
             self.optimizer.zero_grad()
             recon_batch, mu, logvar = self.model(data)
             loss = self.loss_function(recon_batch, data, mu, logvar)
@@ -276,7 +278,7 @@ class VAE(object):
         test_loss = 0
         with torch.no_grad():
             for data, _ in self.test_loader:
-                data = data.to(self.device) / 255.0  # Normalize data to [0, 1]
+                data = data.to(self.device)  # Data is already normalized in get_dataloader
                 recon_batch, mu, logvar = self.model(data)
                 test_loss += self.loss_function(recon_batch, data, mu, logvar).item()
 

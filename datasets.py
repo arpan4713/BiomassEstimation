@@ -115,38 +115,58 @@ EUROSAT MODIFIED
 cp eurosat
 '''
 
-
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.datasets import ImageFolder
 import os
 
-def get_dataloader(dataset_name, batch_size, num_workers=4):
+def get_dataloader(dataset_name, batch_size, train=True, num_workers=4):
     """
     Returns a DataLoader for the specified dataset.
+
+    Args:
+        dataset_name (str): Name of the dataset (e.g., 'EuroSAT').
+        batch_size (int): Batch size for the DataLoader.
+        train (bool): If True, loads the training set. Otherwise, loads the test set.
+        num_workers (int): Number of workers for data loading.
+
+    Returns:
+        DataLoader: A DataLoader for the specified dataset.
     """
+    # Define transformations
     transform = transforms.Compose([
-        transforms.Resize((64, 64)),  # Ensure images are 64x64
-        transforms.ToTensor(),
+        transforms.Resize((64, 64)),  # Resize images to 64x64
+        transforms.ToTensor(),  # Convert images to PyTorch tensors
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Standard normalization
     ])
-    
-    if dataset_name == 'MNIST':
-        dataset = datasets.MNIST(root="data", train=True, download=True, transform=transform)
-    elif dataset_name == 'EMNIST':
-        dataset = datasets.EMNIST(root="data", split='letters', train=True, download=True, transform=transform)
-    elif dataset_name == 'FashionMNIST':
-        dataset = datasets.FashionMNIST(root="data", train=True, download=True, transform=transform)
-    elif dataset_name == 'EuroSAT':
-        dataset_path = "data/EuroSAT"
+
+    # Load the dataset
+    if dataset_name == 'EuroSAT':
+        dataset_path = os.path.join("data", "EuroSAT")
         if not os.path.exists(dataset_path):
             print("Downloading EuroSAT dataset...")
+            # Download the dataset if it doesn't exist
             dataset = datasets.EuroSAT(root="data", download=True, transform=transform)
         else:
+            # Load the dataset from the specified path
             dataset = ImageFolder(root=dataset_path, transform=transform)
+        
+        # Split the dataset into training and testing sets
+        train_size = int(0.8 * len(dataset))  # 80% for training
+        test_size = len(dataset) - train_size  # 20% for testing
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+        
+        # Select the appropriate dataset based on the 'train' argument
+        dataset = train_dataset if train else test_dataset
     else:
         raise ValueError("Unsupported dataset: {}".format(dataset_name))
 
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    # Create the DataLoader
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True if train else False,  # Shuffle only for training
+        num_workers=num_workers
+    )
     return dataloader
