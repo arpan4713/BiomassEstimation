@@ -511,9 +511,15 @@ if __name__ == "__main__":
         interpolations = interpolations.cpu().numpy().astype(np.float32)
         print("Interpolations shape before zoom:", interpolations.shape)
         
-        zoom_factor = (1, 1, 5, 5) if args.dataset == 'EuroSAT' else (1, 5, 5)
+        zoom_factor = (1, 1, 5, 5) if args.dataset == 'EuroSAT' else (1, 5, 5, 1)
         interpolations = ndimage.zoom(interpolations, zoom_factor, order=1) * 256
 
-        imageio.mimsave(f"{args.results_path}/animation_{args.model}_{args.dataset}.gif", interpolations.astype(np.uint8))
+        interpolations = np.clip(interpolations, 0, 255).astype(np.uint8)
+        
+        if args.dataset == 'EuroSAT':
+            interpolations = interpolations.reshape(-1, 64, 64, 3)
+        else:
+            interpolations = interpolations.reshape(-1, 28, 28)
 
-
+        print("Final Interpolations shape before saving:", interpolations.shape)
+        imageio.mimsave(f"{args.results_path}/animation_{args.model}_{args.dataset}.gif", interpolations)
