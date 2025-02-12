@@ -469,7 +469,7 @@ args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 torch.manual_seed(args.seed)
 
-torch.device("cuda" if args.cuda else "cpu")
+device = torch.device("cuda" if args.cuda else "cpu")
 
 vae = VAE(args)
 ae = AE(args)
@@ -494,11 +494,11 @@ if __name__ == "__main__":
     # Perform interpolation and save results
     with torch.no_grad():
         images, _ = next(iter(autoenc.test_loader))
-        images = images.to(autoenc.device)
+        images = images.to(device)
         images_per_row = 16
-        interpolations = get_interpolations(args, autoenc.model, autoenc.device, images, images_per_row)
+        interpolations = get_interpolations(args, autoenc.model, device, images, images_per_row)
 
-        sample = torch.randn(64, args.embedding_size).to(autoenc.device)
+        sample = torch.randn(64, args.embedding_size).to(device)
         sample = autoenc.model.decode(sample).cpu()
 
         if args.dataset == 'EuroSAT':
@@ -508,8 +508,12 @@ if __name__ == "__main__":
             save_image(sample.view(64, 1, 28, 28), f"{args.results_path}/sample_{args.model}_{args.dataset}.png")
             save_image(interpolations.view(-1, 1, 28, 28), f"{args.results_path}/interpolations_{args.model}_{args.dataset}.png", nrow=images_per_row)
 
-        interpolations = interpolations.cpu().numpy()
-        zoom_factor = (1, 5, 5, 1) if args.dataset == 'EuroSAT' else (5, 5)
+        interpolations = interpolations.cpu().numpy().astype(np.float32)
+        print("Interpolations shape before zoom:", interpolations.shape)
+        
+        zoom_factor = (1, 1, 5, 5) if args.dataset == 'EuroSAT' else (1, 5, 5)
         interpolations = ndimage.zoom(interpolations, zoom_factor, order=1) * 256
 
         imageio.mimsave(f"{args.results_path}/animation_{args.model}_{args.dataset}.gif", interpolations.astype(np.uint8))
+
+
