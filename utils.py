@@ -82,3 +82,10 @@ def get_interpolations(args, model, device, images, images_per_row=20):
         
         interps = torch.cat(interps, 0).to(device)
     return interps
+
+
+'''
+python train.py --model VAE --dataset EuroSAT --batch-size 128 --epochs 10 --log-interval 10
+
+
+'''
