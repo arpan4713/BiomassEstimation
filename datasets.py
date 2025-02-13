@@ -114,7 +114,6 @@ EUROSAT MODIFIED
 '''
 cp eurosat
 '''
-
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -135,11 +134,20 @@ def get_dataloader(dataset_name, batch_size, train=True, num_workers=4):
         DataLoader: A DataLoader for the specified dataset.
     """
     # Define transformations
-    transform = transforms.Compose([
-        transforms.Resize((64, 64)),  # Resize images to 64x64
-        transforms.ToTensor(),  # Convert images to PyTorch tensors
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Standard normalization
-    ])
+    if train:
+        transform = transforms.Compose([
+            transforms.Resize((64, 64)),  # Resize images to 64x64
+            transforms.RandomHorizontalFlip(),  # Data augmentation
+            transforms.RandomRotation(10),  # Data augmentation
+            transforms.ToTensor(),  # Convert images to PyTorch tensors
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+        ])
+    else:
+        transform = transforms.Compose([
+            transforms.Resize((64, 64)),  # Resize images to 64x64
+            transforms.ToTensor(),  # Convert images to PyTorch tensors
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+        ])
 
     # Load the dataset
     if dataset_name == 'EuroSAT':
